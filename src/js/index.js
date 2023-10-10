@@ -1,7 +1,7 @@
 // TODO 메뉴 추가
+const $ = (selector) => document.querySelector(selector);
 
 function App() {
-  const $ = (selector) => document.querySelector(selector);
   // 메뉴 총갯수를 보여주는 함수
   const menuListCount = () => {
     // - 총 메뉴 갯수를 count하여 상단에 보여준다.
@@ -47,6 +47,20 @@ function App() {
     // - 메뉴가 추가되고 나면, input은 빈 값으로 초기화한다.
     $("#espresso-menu-name").value = "";
   };
+  // 메뉴 수정 함수
+  const updateMenuName = (e) => {
+    const $menuName = e.target.closest("li").querySelector(".menu-name");
+    const updatedMenuName = prompt("메뉴명을 수정하세요", $menuName.innerText);
+    $menuName.innerText = updatedMenuName;
+  };
+  // 메뉴 삭제 함수
+  const removeMenuName = (e) => {
+    if (confirm("정말 삭제하시겠습니까?")) {
+      e.target.closest("li").remove();
+      menuListCount();
+    }
+  };
+
   // form 태그가 자동으로 전송되는 걸 막아준다.
   $("#espresso-menu-form").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -59,23 +73,15 @@ function App() {
     addMenuName();
   });
   // - 메뉴의 이름을 입력 받고 확인 버튼 클릭으로 추가한다.
-  $("#espresso-menu-submit-button").addEventListener("click", () => {
-    addMenuName();
-  });
+  $("#espresso-menu-submit-button").addEventListener("click", addMenuName);
 
-  // TODO 메뉴 수정
-  // - 메뉴의 수정 버튼 클릭 이벤트를 받고, 메뉴 수정하는 모달창이 뜬다.
-  // - 모달창에서 신규메뉴명을 입력받고, 확인 버튼을 누르면 메뉴가 수정된다.
   /* 이벤트 위임, 상위엘리먼트에게 먼저 바인딩해놓기 */
   $("#espresso-menu-list").addEventListener("click", (e) => {
-    // 수정 버튼
-    const $menuName = e.target.closest("li").querySelector(".menu-name");
+    // TODO 메뉴 수정
+    // - 메뉴의 수정 버튼 클릭 이벤트를 받고, 메뉴 수정하는 모달창이 뜬다.
+    // - 모달창에서 신규메뉴명을 입력받고, 확인 버튼을 누르면 메뉴가 수정된다.
     if (e.target.classList.contains("menu-edit-button")) {
-      const updatedMenuName = prompt(
-        "메뉴명을 수정하세요",
-        $menuName.innerText
-      );
-      $menuName.innerText = updatedMenuName;
+      updateMenuName(e);
     }
 
     // TODO 메뉴 삭제
@@ -83,10 +89,7 @@ function App() {
     // - 확인 버튼을 클릭하면 메뉴가 삭제된다.
     // - 총 메뉴 갯수를 count하여 상단에 보여준다.
     if (e.target.classList.contains("menu-remove-button")) {
-      if (confirm("정말 삭제하시겠습니까?")) {
-        e.target.closest("li").remove();
-        menuListCount();
-      }
+      removeMenuName(e);
     }
   });
 }
