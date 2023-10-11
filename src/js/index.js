@@ -7,18 +7,9 @@
 // TODO 페이지 접근시 최초 데이터 Read & Rendering
 // - 페이지에 최초에 로딩될 때 localStorage에 에스프레소 메뉴를 읽어온다.
 
-// TODO 메뉴 추가
-const $ = (selector) => document.querySelector(selector);
+import { $ } from "./utils/dom.js";
+import store from "./store/index.js";
 
-// localStorage
-const store = {
-  setLocalStorage(menu) {
-    localStorage.setItem("menu", JSON.stringify(menu)); // localStorage에는 문자열로만 저장해줘야 한다.
-  },
-  getLocalStorage() {
-    return JSON.parse(localStorage.getItem("menu"));
-  },
-};
 function App() {
   // TODO 카테고리별 메뉴판 관리
   this.menu = {
@@ -38,6 +29,7 @@ function App() {
       this.menu = store.getLocalStorage();
     }
     render();
+    initEventListeners();
   };
   // - 품절 상태인 경우를 보여줄 수 있게, 품절 버튼을 추가한다
   // - 클릭이벤트에서 가장 가까운 li태그의 class속성 값에 sold-out을 추가한다.
@@ -79,7 +71,7 @@ function App() {
   // 메뉴 총갯수를 보여주는 함수
   const menuListCount = () => {
     // - 총 메뉴 갯수를 count하여 상단에 보여준다.
-    const menuCount = document.querySelectorAll(".menu-list-item").length;
+    const menuCount = this.menu[this.currentCategory].length;
     $(".menu-count").innerText = `총 ${menuCount}개`;
   };
   // 메뉴 추가 함수
@@ -105,7 +97,7 @@ function App() {
     this.menu[this.currentCategory][menuId].name = updatedMenuName;
     // localStorage에 데이터 저장
     store.setLocalStorage(this.menu);
-    $menuName.innerText = updatedMenuName;
+    render();
   };
   // 메뉴 삭제 함수
   const removeMenuName = (e) => {
@@ -114,8 +106,7 @@ function App() {
       this.menu[this.currentCategory].splice(menuId, 1);
       // localStorage에 데이터 저장
       store.setLocalStorage(this.menu);
-      e.target.closest("li").remove();
-      menuListCount();
+      render();
     }
   };
   //메뉴 품절 함수
@@ -128,52 +119,55 @@ function App() {
     render();
   };
 
-  // form 태그가 자동으로 전송되는 걸 막아준다.
-  $("#menu-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-  });
-  // - 메뉴의 이름을 입력 받고 엔터키 입력으로 추가한다.
-  $("#menu-name").addEventListener("keypress", (e) => {
-    if (e.key !== "Enter") {
-      return;
-    }
-    addMenuName();
-  });
-  // - 메뉴의 이름을 입력 받고 확인 버튼 클릭으로 추가한다.
-  $("#menu-submit-button").addEventListener("click", addMenuName);
+  const initEventListeners = () => {
+    // form 태그가 자동으로 전송되는 걸 막아준다.
+    $("#menu-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+    });
+    // - 메뉴의 이름을 입력 받고 엔터키 입력으로 추가한다.
+    $("#menu-name").addEventListener("keypress", (e) => {
+      if (e.key !== "Enter") {
+        return;
+      }
+      addMenuName();
+    });
+    // - 메뉴의 이름을 입력 받고 확인 버튼 클릭으로 추가한다.
+    $("#menu-submit-button").addEventListener("click", addMenuName);
 
-  /* 이벤트 위임, 상위엘리먼트에게 먼저 바인딩해놓기 */
-  $("#menu-list").addEventListener("click", (e) => {
-    // TODO 메뉴 수정
-    // - 메뉴의 수정 버튼 클릭 이벤트를 받고, 메뉴 수정하는 모달창이 뜬다.
-    // - 모달창에서 신규메뉴명을 입력받고, 확인 버튼을 누르면 메뉴가 수정된다.
-    if (e.target.classList.contains("menu-edit-button")) {
-      updateMenuName(e);
-      return;
-    }
-    // TODO 메뉴 삭제
-    // - 메뉴 삭제 버튼 클릭 이벤트를 받고, 메뉴 삭제 컨펌 모달창이 뜬다.
-    // - 확인 버튼을 클릭하면 메뉴가 삭제된다.
-    // - 총 메뉴 갯수를 count하여 상단에 보여준다.
-    if (e.target.classList.contains("menu-remove-button")) {
-      removeMenuName(e);
-      return;
-    }
-    // 클릭 시 품절
-    if (e.target.classList.contains("menu-sold-out-button")) {
-      soldOutMenu(e);
-      return;
-    }
-  });
-  $("nav").addEventListener("click", (e) => {
-    const isCategoryButton = e.target.classList.contains("cafe-category-name");
-    if (isCategoryButton) {
-      const categoryName = e.target.dataset.categoryName;
-      this.currentCategory = categoryName;
-      $("#category-title").innerText = `${e.target.innerText} 메뉴 관리`;
-      render();
-    }
-  });
+    /* 이벤트 위임, 상위엘리먼트에게 먼저 바인딩해놓기 */
+    $("#menu-list").addEventListener("click", (e) => {
+      // TODO 메뉴 수정
+      // - 메뉴의 수정 버튼 클릭 이벤트를 받고, 메뉴 수정하는 모달창이 뜬다.
+      // - 모달창에서 신규메뉴명을 입력받고, 확인 버튼을 누르면 메뉴가 수정된다.
+      if (e.target.classList.contains("menu-edit-button")) {
+        updateMenuName(e);
+        return;
+      }
+      // TODO 메뉴 삭제
+      // - 메뉴 삭제 버튼 클릭 이벤트를 받고, 메뉴 삭제 컨펌 모달창이 뜬다.
+      // - 확인 버튼을 클릭하면 메뉴가 삭제된다.
+      // - 총 메뉴 갯수를 count하여 상단에 보여준다.
+      if (e.target.classList.contains("menu-remove-button")) {
+        removeMenuName(e);
+        return;
+      }
+      // 클릭 시 품절
+      if (e.target.classList.contains("menu-sold-out-button")) {
+        soldOutMenu(e);
+        return;
+      }
+    });
+    $("nav").addEventListener("click", (e) => {
+      const isCategoryButton =
+        e.target.classList.contains("cafe-category-name");
+      if (isCategoryButton) {
+        const categoryName = e.target.dataset.categoryName;
+        this.currentCategory = categoryName;
+        $("#category-title").innerText = `${e.target.innerText} 메뉴 관리`;
+        render();
+      }
+    });
+  };
 }
 const app = new App();
 app.init();
