@@ -32,11 +32,46 @@ const store = {
     localStorage.setItem("menu", JSON.stringify(menu)); // localStorage에는 문자열로만 저장해줘야 한다.
   },
   getLocalStorage() {
-    localStorage.getItem("menu");
+    return JSON.parse(localStorage.getItem("menu"));
   },
 };
 function App() {
   this.menu = [];
+  this.init = () => {
+    if (store.getLocalStorage().length > 1) {
+      this.menu = store.getLocalStorage();
+      console.log(this.menu);
+    }
+    render();
+  };
+
+  const render = () => {
+    const template = this.menu
+      .map((menuItem, index) => {
+        return `
+    <li data-menu-id="${index}" class="menu-list-item d-flex items-center py-2">
+    <span class="w-100 pl-2 menu-name">${menuItem.name}</span>
+    <button
+    type="button"
+    class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
+    >
+    수정
+    </button>
+    <button
+    type="button"
+    class="bg-gray-50 text-gray-500 text-sm menu-remove-button"
+    >
+    삭제
+    </button>
+    </li>
+    `;
+      })
+      .join("");
+
+    // - 추가되는 메뉴의 마크업은 `<ul id="espresso-menu-list" class="mt-3 pl-0"></ul>`안에 삽입해야 한다.
+    $("#espresso-menu-list").innerHTML = template;
+    menuListCount();
+  };
   //상태(변하는 데이터) - 메뉴명
   // 메뉴 총갯수를 보여주는 함수
   const menuListCount = () => {
@@ -56,32 +91,7 @@ function App() {
     //#2 . localStorage에 데이터 저장하기
     store.setLocalStorage(this.menu);
 
-    const template = this.menu
-      .map((menuItem, index) => {
-        return `
-      <li data-menu-id="${index}" class="menu-list-item d-flex items-center py-2">
-      <span class="w-100 pl-2 menu-name">${menuItem.name}</span>
-      <button
-      type="button"
-      class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
-      >
-      수정
-      </button>
-      <button
-      type="button"
-      class="bg-gray-50 text-gray-500 text-sm menu-remove-button"
-      >
-      삭제
-      </button>
-      </li>
-      `;
-      })
-      .join("");
-
-    // - 추가되는 메뉴의 마크업은 `<ul id="espresso-menu-list" class="mt-3 pl-0"></ul>`안에 삽입해야 한다.
-    $("#espresso-menu-list").innerHTML = template;
-    menuListCount();
-
+    render();
     // - 메뉴가 추가되고 나면, input은 빈 값으로 초기화한다.
     $("#espresso-menu-name").value = "";
   };
@@ -139,3 +149,4 @@ function App() {
 }
 
 const app = new App();
+app.init();
